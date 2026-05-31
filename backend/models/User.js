@@ -1,40 +1,59 @@
-/**
- * Mock User Model
- * In a real app, this would use MongoDB (Mongoose) or PostgreSQL (Sequelize).
- */
-const users = [];
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-const User = {
-  create: async (userData) => {
-    // Default role is "user" if not provided
-    const newUser = {
-      role: "user",
-      profile: { bio: "", website: "" },
-      ...userData
-    };
-    users.push(newUser);
-    return newUser;
+const userSchema = new mongoose.Schema({
+  id: { type: String, unique: true, default: () => Date.now().toString() },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, default: 'user', enum: ['user', 'admin'] },
+  profile: {
+    bio: String,
+    website: String
   },
-  findByEmail: async (email) => {
-    return users.find(u => u.email === email);
-  },
-  findById: async (id) => {
-    return users.find(u => u.id === id);
-  },
-  findAll: async () => {
-    // Return users without passwords
-    return users.map(({ password, ...user }) => user);
-  },
-  updateProfile: async (id, profileData) => {
-    const userIndex = users.findIndex(u => u.id === id);
-    if (userIndex === -1) return null;
-    
-    users[userIndex].profile = {
-      ...users[userIndex].profile,
-      ...profileData
-    };
-    return users[userIndex];
-  }
+  emailVerified: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  lastLogin: Date
+});
+
+// Hide password in responses
+userSchema.methods.toJSON = function() {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
 };
 
-module.exports = User;
+const User = mongoose.model('User', userSchema);
+
+module.exports = {
+  create: async (userData) => {
+    const newUser = new User(userData);
+    await newUser.save();
+    return newUser;
+  },
+  
+  findByEmail: async (email) => {
+    return await User.findOne({ email });
+  },
+  
+  findById: async (id) => {
+    return await User.findOne({ id });
+  },
+  
+  findAll: async () => {
+    return await User.find({}).select('-password');
+  },
+  
+  updateProfile: async (id, profileData) => {
+    return await User.findOneAndUpdate(
+      { id },
+      { profile: profileData },
+      { new: true }
+    );
+  },
+  
+  deleteById: async (id) => {
+    return await User.deleteOne({ id });
+  }
+};

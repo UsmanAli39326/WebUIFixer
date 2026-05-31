@@ -41,7 +41,6 @@ async def analyze_website(request: AuditRequest, ai: bool = False):
         
         return {
             "url": request.url,
-            "timestamp": "now", # Placeholder
             "summary": analysis_result["summary"],
             "issues": analysis_result["issues"],
             "fixedHtml": fixed_html,

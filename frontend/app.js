@@ -42,19 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentIssues = [];
     let currentAuditId = null;
-    let jwtToken = localStorage.getItem('token');
-    const API_BASE = 'http://localhost:3000';
 
     // ── Auth Handling ───────────────────────────────────────────────────
 
     async function updateAuthState() {
-        if (jwtToken) {
+        if (api.token) {
             try {
-                const res = await fetch(`${API_BASE}/api/user/profile`, {
-                    headers: { 'Authorization': `Bearer ${jwtToken}` }
-                });
-                if (!res.ok) throw new Error("Invalid session");
-                const userProfile = await res.json();
+                const userProfile = await api.getUserProfile();
 
                 authSection.classList.add('hidden');
                 mainAppContent.classList.remove('hidden');
@@ -65,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (userProfile.role === 'admin') {
                     document.getElementById('admin-tab-btn').classList.remove('hidden');
                     fetchUsers();
+                    fetchAnalytics();
                 } else {
                     document.getElementById('admin-tab-btn').classList.add('hidden');
                 }
@@ -77,8 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (err) {
                 console.error(err);
-                jwtToken = null;
-                localStorage.removeItem('token');
+                await api.logout();
                 updateAuthState();
             }
         } else {
@@ -110,16 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = loginForm.querySelectorAll('input')[1].value;
 
         try {
-            const res = await fetch(`${API_BASE}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-
-            jwtToken = data.token;
-            localStorage.setItem('token', jwtToken);
+            await api.login(email, password);
             updateAuthState();
         } catch (err) {
             alert(err.message);
@@ -133,14 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = registerForm.querySelectorAll('input')[2].value;
 
         try {
-            const res = await fetch(`${API_BASE}/api/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-
+            await api.register(name, email, password);
             alert('Registration successful! Please login.');
             authTabBtns[0].click(); // switch to login
         } catch (err) {
@@ -148,9 +126,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    logoutBtn.addEventListener('click', () => {
-        jwtToken = null;
-        localStorage.removeItem('token');
+    // Forgot Password Logic
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const forgotPasswordForm = document.getElementById('forgot-password-form');
+    const resetPasswordForm = document.getElementById('reset-password-form');
+    const backToLoginBtns = document.querySelectorAll('.back-to-login');
+
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            forgotPasswordForm.classList.remove('hidden');
+        });
+    }
+
+    backToLoginBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            forgotPasswordForm.classList.add('hidden');
+            resetPasswordForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+    });
+
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = forgotPasswordForm.querySelector('input').value;
+            try {
+                const res = await api.forgotPassword(email);
+                alert(res.message);
+                forgotPasswordForm.classList.add('hidden');
+                resetPasswordForm.classList.remove('hidden');
+            } catch(err) {
+                alert(err.message);
+            }
+        });
+    }
+
+    if (resetPasswordForm) {
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = resetPasswordForm.querySelectorAll('input')[0].value;
+            const newPassword = resetPasswordForm.querySelectorAll('input')[1].value;
+            try {
+                const res = await api.resetPassword(token, newPassword);
+                alert(res.message);
+                resetPasswordForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            } catch(err) {
+                alert(err.message);
+            }
+        });
+    }
+
+    logoutBtn.addEventListener('click', async () => {
+        await api.logout();
         updateAuthState();
     });
 
@@ -174,8 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Service Status Check
     async function checkServiceStatus() {
         try {
-            const res = await fetch(`${API_BASE}/health`);
-            const data = await res.json();
+            const data = await api.checkHealth();
 
             updateStatusIndicator(statusBackend, true);
             updateStatusIndicator(statusAi, data.aiEngine && data.aiEngine.status === 'ok');
@@ -224,24 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSection.classList.add('hidden');
 
         try {
-            const reqUrl = `${API_BASE}/audit?url=${encodeURIComponent(targetUrl)}&ai=${aiToggle.checked}`;
-            const res = await fetch(reqUrl, {
-                headers: {
-                    'Authorization': `Bearer ${jwtToken}`
-                }
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                if (res.status === 401 || res.status === 403) {
-                    jwtToken = null;
-                    localStorage.removeItem('token');
-                    updateAuthState();
-                    throw new Error('Session expired. Please login again.');
-                }
-                throw new Error(data.error || 'Failed to analyze webpage');
-            }
+            const data = await api.analyzeWebsite(targetUrl, aiToggle.checked);
 
             currentAuditId = data.id;
             currentIssues = data.issues || [];
@@ -293,6 +304,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             showError(err.message);
+            // Session expired trick
+            if (err.message.includes('No token provided') || err.message.includes('Token has expired')) {
+                await api.logout();
+                updateAuthState();
+            }
         } finally {
             setLoading(false);
         }
@@ -415,12 +431,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Report Handlers
     downloadPdfBtn.addEventListener('click', () => {
         if (!currentAuditId) return;
-        window.open(`${API_BASE}/api/audit/${currentAuditId}/report/pdf`, '_blank');
+        api.generatePDF(currentAuditId);
     });
 
     viewHtmlBtn.addEventListener('click', () => {
         if (!currentAuditId) return;
-        window.open(`${API_BASE}/api/audit/${currentAuditId}/report/html`, '_blank');
+        api.getHTMLReport(currentAuditId);
     });
 
     // ── Console Tabs ────────────────────────────────────────────────────
@@ -447,16 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const website = document.getElementById('profile-website').value;
 
         try {
-            const res = await fetch(`${API_BASE}/api/user/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${jwtToken}`
-                },
-                body: JSON.stringify({ bio, website })
-            });
-            if (!res.ok) throw new Error("Failed to update profile");
-            
+            await api.updateProfile({ bio, website });
             profileMsg.textContent = "Profile updated successfully!";
             profileMsg.classList.remove('hidden');
             setTimeout(() => profileMsg.classList.add('hidden'), 3000);
@@ -464,6 +471,43 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(err.message);
         }
     });
+
+    const changePasswordForm = document.getElementById('change-password-form');
+    const cpMsg = document.getElementById('cp-msg');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const oldP = document.getElementById('cp-old').value;
+            const newP = document.getElementById('cp-new').value;
+            try {
+                const res = await api.changePassword(oldP, newP);
+                cpMsg.textContent = res.message;
+                cpMsg.classList.remove('hidden');
+                setTimeout(() => cpMsg.classList.add('hidden'), 3000);
+                changePasswordForm.reset();
+            } catch(err) {
+                alert(err.message);
+            }
+        });
+    }
+
+    const deleteAccountForm = document.getElementById('delete-account-form');
+    if (deleteAccountForm) {
+        deleteAccountForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const delP = document.getElementById('del-password').value;
+            if(confirm("Are you absolutely sure? This cannot be undone.")) {
+                try {
+                    const res = await api.deleteAccount(delP);
+                    alert(res.message);
+                    await api.logout();
+                    updateAuthState();
+                } catch(err) {
+                    alert(err.message);
+                }
+            }
+        });
+    }
 
     // ── Marketplace Logic ───────────────────────────────────────────────
     const mpForm = document.getElementById('marketplace-upload-form');
@@ -476,6 +520,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = document.getElementById('mp-title').value;
         const url = document.getElementById('mp-url').value;
         const price = document.getElementById('mp-price').value;
+        const fileInput = document.getElementById('mp-file');
+        const file = fileInput && fileInput.files.length > 0 ? fileInput.files[0] : null;
 
         mpSubmitBtn.disabled = true;
         mpSubmitBtn.querySelector('.btn-text').classList.add('hidden');
@@ -483,30 +529,15 @@ document.addEventListener('DOMContentLoaded', () => {
         mpUploadResult.classList.add('hidden');
 
         try {
-            const res = await fetch(`${API_BASE}/api/marketplace/upload`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${jwtToken}`
-                },
-                body: JSON.stringify({ title, url, price: parseFloat(price) })
-            });
-            const data = await res.json();
+            const data = await api.uploadTemplate(title, url, parseFloat(price), file);
             
             mpUploadResult.classList.remove('hidden');
-            if (res.ok || res.status === 201) {
-                mpUploadResult.innerHTML = `
-                    <div style="color: #10b981; margin-bottom: 0.5rem; font-weight: bold;">${data.message}</div>
-                    <div>AI Score: <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981">${data.template.score}/100</span></div>
-                `;
-                fetchTemplates(); // Refresh storefront
-                mpForm.reset();
-            } else {
-                mpUploadResult.innerHTML = `
-                    <div style="color: #ef4444; margin-bottom: 0.5rem; font-weight: bold;">${data.message || data.error}</div>
-                    ${data.template ? `<div>AI Score: <span class="badge" style="background: rgba(239,68,68,0.2); color: #ef4444">${data.template.score}/100</span></div>` : ''}
-                `;
-            }
+            mpUploadResult.innerHTML = `
+                <div style="color: #10b981; margin-bottom: 0.5rem; font-weight: bold;">${data.message || 'Template uploaded'}</div>
+                <div>AI Score: <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981">${data.template.score}/100</span></div>
+            `;
+            fetchTemplates(); // Refresh storefront
+            mpForm.reset();
         } catch (err) {
             mpUploadResult.classList.remove('hidden');
             mpUploadResult.innerHTML = `<div style="color: #ef4444;">${err.message}</div>`;
@@ -517,10 +548,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function fetchTemplates() {
+    const mpSearchInput = document.getElementById('mp-search-input');
+    if (mpSearchInput) {
+        mpSearchInput.addEventListener('input', (e) => {
+            fetchTemplates(e.target.value);
+        });
+    }
+
+    async function fetchTemplates(searchQuery = '') {
         try {
-            const res = await fetch(`${API_BASE}/api/marketplace/templates`);
-            const templates = await res.json();
+            const templates = await api.getTemplates(searchQuery);
             
             mpGrid.innerHTML = '';
             if (templates.length === 0) {
@@ -538,6 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="template-score">AI Score: ${t.score}/100</span>
                         <span class="template-price">$${t.price.toFixed(2)}</span>
                     </div>
+                    ${t.filePath ? `<a href="${API_BASE_URL}/api/marketplace/templates/${t.id}/download" class="action-btn" style="display: inline-block; margin-top: 1rem; text-decoration: none; text-align: center; width: 100%; box-sizing: border-box;" download>Download Template</a>` : ''}
                 `;
                 mpGrid.appendChild(card);
             });
@@ -548,30 +586,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Admin Logic ─────────────────────────────────────────────────────
     const adminUsersList = document.getElementById('admin-users-list');
-    document.getElementById('refresh-users-btn').addEventListener('click', fetchUsers);
+    document.getElementById('refresh-users-btn').addEventListener('click', () => {
+        fetchUsers();
+        fetchAnalytics();
+    });
+
+    async function fetchAnalytics() {
+        if (!api.token) return;
+        try {
+            const data = await api.getAdminAnalytics();
+            document.getElementById('admin-stat-users').textContent = data.totalUsers;
+            document.getElementById('admin-stat-audits').textContent = data.totalAudits;
+            document.getElementById('admin-stat-templates').textContent = data.totalTemplates;
+        } catch (err) {
+            console.error("Failed to fetch analytics", err);
+        }
+    }
 
     async function fetchUsers() {
-        if (!jwtToken) return;
+        if (!api.token) return;
         try {
-            const res = await fetch(`${API_BASE}/api/admin/users`, {
-                headers: { 'Authorization': `Bearer ${jwtToken}` }
-            });
-            if (!res.ok) throw new Error("Failed to fetch users");
-            
-            const users = await res.json();
+            const users = await api.getAdminUsers();
             adminUsersList.innerHTML = '';
             
             users.forEach(u => {
                 const tr = document.createElement('tr');
                 const roleClass = u.role === 'admin' ? 'role-admin' : 'role-user';
+                const statusClass = u.isActive !== false ? 'status-active' : 'status-blocked';
+                const statusText = u.isActive !== false ? 'Active' : 'Blocked';
+                const blockActionText = u.isActive !== false ? 'Block' : 'Unblock';
+
                 tr.innerHTML = `
                     <td><code>${u.id}</code></td>
                     <td>${u.name}</td>
                     <td>${u.email}</td>
                     <td><span class="role-badge ${roleClass}">${u.role}</span></td>
+                    <td><span class="badge ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <button class="action-btn block-btn" data-id="${u.id}">${blockActionText}</button>
+                        <button class="action-btn delete-btn" style="color: #ef4444; border-color: #ef4444;" data-id="${u.id}">Delete</button>
+                    </td>
                 `;
                 adminUsersList.appendChild(tr);
             });
+
+            // Add event listeners for new buttons
+            document.querySelectorAll('.block-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.target.dataset.id;
+                    try {
+                        await api.toggleBlockUser(id);
+                        fetchUsers(); // refresh
+                    } catch (err) {
+                        alert(err.message);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.target.dataset.id;
+                    if (confirm('Are you sure you want to delete this user permanently?')) {
+                        try {
+                            await api.deleteUser(id);
+                            fetchUsers(); // refresh
+                        } catch (err) {
+                            alert(err.message);
+                        }
+                    }
+                });
+            });
+
         } catch (err) {
             console.error(err);
         }

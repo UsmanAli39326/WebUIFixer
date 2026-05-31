@@ -37,6 +37,22 @@
                 <input type="email" placeholder="Email" required>
                 <input type="password" placeholder="Password" required>
                 <button type="submit">Login</button>
+                <button type="button" id="forgot-password-link" style="background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; margin-top: 1rem;">Forgot Password?</button>
+            </form>
+
+            <form id="forgot-password-form" class="auth-form hidden">
+                <p class="text-muted" style="color: #9ca3af; text-align: center; margin-bottom: 1rem;">Enter your email to receive a password reset token.</p>
+                <input type="email" placeholder="Email" required>
+                <button type="submit">Send Reset Token</button>
+                <button type="button" class="back-to-login" style="background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; margin-top: 1rem;">Back to Login</button>
+            </form>
+
+            <form id="reset-password-form" class="auth-form hidden">
+                <p class="text-muted" style="color: #9ca3af; text-align: center; margin-bottom: 1rem;">Enter the token from your console and your new password.</p>
+                <input type="text" placeholder="Reset Token" required>
+                <input type="password" placeholder="New Password" required>
+                <button type="submit">Reset Password</button>
+                <button type="button" class="back-to-login" style="background: none; border: none; color: var(--primary); text-decoration: underline; cursor: pointer; margin-top: 1rem;">Back to Login</button>
             </form>
 
             <form id="register-form" class="auth-form hidden">
@@ -160,6 +176,25 @@
                     </form>
                     <p id="profile-msg" class="success-msg hidden"></p>
                 </section>
+
+                <section class="glass-card" style="margin-top: 2rem;">
+                    <h2>Change Password</h2>
+                    <form id="change-password-form" class="auth-form" style="margin-top: 1rem;">
+                        <input type="password" id="cp-old" placeholder="Current Password" required>
+                        <input type="password" id="cp-new" placeholder="New Password" required>
+                        <button type="submit">Change Password</button>
+                    </form>
+                    <p id="cp-msg" class="success-msg hidden" style="color: #10b981; margin-top: 1rem;"></p>
+                </section>
+
+                <section class="glass-card danger-zone" style="margin-top: 2rem; border: 1px solid #ef4444;">
+                    <h2 style="color: #ef4444;">Danger Zone</h2>
+                    <p style="color: #9ca3af; margin-top: 0.5rem;">Once you delete your account, there is no going back. Please be certain.</p>
+                    <form id="delete-account-form" class="auth-form" style="margin-top: 1rem;">
+                        <input type="password" id="del-password" placeholder="Confirm Password" required>
+                        <button type="submit" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444;">Delete Account Permanently</button>
+                    </form>
+                </section>
             </div>
 
             <!-- MARKETPLACE TAB -->
@@ -171,6 +206,8 @@
                         <input type="text" id="mp-title" placeholder="Template Title" required>
                         <input type="url" id="mp-url" placeholder="Live Preview URL (https://...)" required>
                         <input type="number" id="mp-price" placeholder="Price ($)" step="0.01" required>
+                        <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.85rem;">Upload Template Archive (.zip)</p>
+                        <input type="file" id="mp-file" accept=".zip,.rar,.7z" style="padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 4px; color: var(--text-color);">
                         <button type="submit" id="mp-submit-btn">
                             <span class="btn-text">Upload & Analyze</span>
                             <div class="spinner hidden"></div>
@@ -181,6 +218,9 @@
 
                 <section class="storefront" style="margin-top: 2rem;">
                     <h2>Approved Templates Store</h2>
+                    <div class="search-container" style="margin-bottom: 1rem; margin-top: 1rem;">
+                        <input type="text" id="mp-search-input" placeholder="Search templates by title..." style="width: 100%; padding: 0.75rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;">
+                    </div>
                     <div id="marketplace-grid" class="marketplace-grid">
                         <!-- Templates injected via JS -->
                     </div>
@@ -189,9 +229,27 @@
 
             <!-- ADMIN TAB -->
             <div id="tab-admin" class="console-tab-content hidden">
+                <section class="glass-card" style="margin-bottom: 2rem;">
+                    <h2>System Analytics</h2>
+                    <div class="summary-cards" style="margin-top: 1rem;">
+                        <div class="stat-card glass-card">
+                            <h3>Total Users</h3>
+                            <div class="stat-value" id="admin-stat-users">0</div>
+                        </div>
+                        <div class="stat-card glass-card warning">
+                            <h3>Total Audits</h3>
+                            <div class="stat-value" id="admin-stat-audits">0</div>
+                        </div>
+                        <div class="stat-card glass-card info">
+                            <h3>Templates</h3>
+                            <div class="stat-value" id="admin-stat-templates">0</div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="glass-card">
                     <h2>Registered Users</h2>
-                    <button id="refresh-users-btn" class="export-btn" style="margin-bottom: 1rem;">Refresh Users</button>
+                    <button id="refresh-users-btn" class="export-btn" style="margin-bottom: 1rem;">Refresh Data</button>
                     <div class="table-container">
                         <table class="admin-table">
                             <thead>
@@ -200,6 +258,8 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-users-list">
@@ -213,6 +273,8 @@
         </div>
     </main>
 
+        <!-- Core Scripts -->
+    <script src="api.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

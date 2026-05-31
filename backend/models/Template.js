@@ -1,27 +1,39 @@
-/**
- * Mock Template Store for Marketplace
- */
-const templates = [];
+const mongoose = require('mongoose');
 
-const Template = {
-  create: async (templateData) => {
-    const newTemplate = {
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      ...templateData
-    };
-    templates.push(newTemplate);
-    return newTemplate;
+const templateSchema = new mongoose.Schema({
+  id: { type: String, unique: true, default: () => Date.now().toString() },
+  title: { type: String, required: true },
+  url: { type: String, required: true },
+  price: { type: Number, required: true },
+  score: { type: Number, required: true },
+  filePath: { type: String, required: false },
+  status: { type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'] },
+  userId: { type: String, required: true }, // The user who uploaded it
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Template = mongoose.model('Template', templateSchema);
+
+module.exports = {
+  add: async (templateData) => {
+    const newTemplate = new Template(templateData);
+    await newTemplate.save();
+    return newTemplate.toObject();
   },
-  findById: async (id) => {
-    return templates.find(t => t.id === id);
+  
+  getAll: async () => {
+    return await Template.find({}).sort({ createdAt: -1 }).lean();
   },
+
   findAllApproved: async () => {
-    return templates.filter(t => t.status === "approved");
+    return await Template.find({ status: 'approved' }).sort({ createdAt: -1 }).lean();
   },
-  findAll: async () => {
-    return templates;
+  
+  findById: async (id) => {
+    return await Template.findOne({ id }).lean();
+  },
+  
+  deleteById: async (id) => {
+    return await Template.deleteOne({ id });
   }
 };
-
-module.exports = Template;
