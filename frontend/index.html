@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Accessibility & Design Auditor</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-mesh"></div>
+
+    <nav class="status-bar">
+        <div class="status-item" id="status-backend">
+            <span class="status-dot"></span>
+            Backend: <span class="status-text">Checking...</span>
+        </div>
+        <div class="status-item" id="status-ai">
+            <span class="status-dot"></span>
+            AI Engine: <span class="status-text">Checking...</span>
+        </div>
+        <div class="status-item" id="status-user">
+            <span class="status-icon">👤</span>
+            <span class="user-name">Guest</span>
+            <button id="logout-btn" class="hidden">Logout</button>
+        </div>
+    </nav>
+    
+    <main class="container">
+        <section id="auth-section" class="glass-card">
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" data-target="login-form">Login</button>
+                <button class="auth-tab-btn" data-target="register-form">Register</button>
+            </div>
+            
+            <form id="login-form" class="auth-form">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+
+            <form id="register-form" class="auth-form hidden">
+                <input type="text" placeholder="Full Name" required>
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Create Account</button>
+            </form>
+        </section>
+
+        <div id="main-app-content" class="hidden">
+            <header class="console-header">
+                <div class="header-title">
+                    <div class="logo-icon">✨</div>
+                    <h1>WebFixer Console</h1>
+                </div>
+                <nav class="console-tabs">
+                    <button class="console-tab-btn active" data-target="tab-audit">Audit</button>
+                    <button class="console-tab-btn" data-target="tab-profile">Profile</button>
+                    <button class="console-tab-btn" data-target="tab-marketplace">Marketplace</button>
+                    <button class="console-tab-btn hidden" id="admin-tab-btn" data-target="tab-admin">Admin</button>
+                </nav>
+            </header>
+
+            <!-- AUDIT TAB -->
+            <div id="tab-audit" class="console-tab-content active">
+                <p class="tab-subtitle">Analyze any webpage for WCAG accessibility and design system violations.</p>
+
+        <section class="glass-card input-section">
+            <form id="audit-form">
+                <div class="input-group">
+                    <input type="url" id="url-input" placeholder="https://example.com" required>
+                    <button type="submit" id="submit-btn">
+                        <span class="btn-text">Run Audit</span>
+                        <div class="spinner hidden"></div>
+                    </button>
+                </div>
+                <div class="options-group">
+                    <label class="toggle-container">
+                        <input type="checkbox" id="ai-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="option-label">Suggest AI Fixes</span>
+                </div>
+            </form>
+            <div id="progress-container" class="progress-container hidden">
+                <div class="progress-line"></div>
+                <p id="progress-text">Initializing analysis...</p>
+            </div>
+            <div id="error-message" class="error hidden"></div>
+        </section>
+
+        <section id="results-section" class="hidden">
+            <div class="results-actions">
+                <button id="download-pdf-btn" class="export-btn pdf">📄 Download PDF</button>
+                <button id="view-html-btn" class="export-btn html">🌐 View HTML Report</button>
+            </div>
+            <div class="summary-cards">
+                <div class="stat-card glass-card critical">
+                    <h3>Critical</h3>
+                    <div class="stat-value" id="stat-critical">0</div>
+                </div>
+                <div class="stat-card glass-card score-card">
+                    <h3>A11y Score</h3>
+                    <div class="stat-value" id="stat-score">0</div>
+                </div>
+                <div class="stat-card glass-card">
+                    <h3>Total Issues</h3>
+                    <div class="stat-value" id="stat-total">0</div>
+                </div>
+                <div class="stat-card glass-card warning">
+                    <h3>Accessibility</h3>
+                    <div class="stat-value" id="stat-a11y">0</div>
+                </div>
+                <div class="stat-card glass-card info">
+                    <h3>Design System</h3>
+                    <div class="stat-value" id="stat-design">0</div>
+                </div>
+            </div>
+
+            <div id="ai-suggestion-container" class="glass-card hidden">
+                <div class="ai-header">
+                    <h3>🤖 AI Suggested Fixes</h3>
+                    <div class="ai-tabs">
+                        <button class="tab-btn active" data-target="ai-code-view">Code</button>
+                        <button class="tab-btn" data-target="ai-preview-view">Preview</button>
+                    </div>
+                </div>
+                <div id="ai-code-view" class="tab-content">
+                    <pre><code id="ai-code"></code></pre>
+                </div>
+                <div id="ai-preview-view" class="tab-content hidden">
+                    <iframe id="ai-preview-frame" title="AI Fix Preview"></iframe>
+                </div>
+            </div>
+
+            <div class="issues-header">
+                <h2>Detailed Findings</h2>
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="critical">Critical</button>
+                    <button class="filter-btn" data-filter="high">High</button>
+                    <button class="filter-btn" data-filter="medium">Medium</button>
+                    <button class="filter-btn" data-filter="low">Low</button>
+                </div>
+            </div>
+
+            <div id="issues-list" class="issues-list">
+                <!-- Issues injected here via JS -->
+            </div>
+            </div> <!-- End Audit Tab -->
+
+            <!-- PROFILE TAB -->
+            <div id="tab-profile" class="console-tab-content hidden">
+                <section class="glass-card">
+                    <h2>Your Profile</h2>
+                    <form id="profile-form" class="auth-form" style="margin-top: 1rem;">
+                        <input type="text" id="profile-bio" placeholder="Tell us about yourself (Bio)">
+                        <input type="url" id="profile-website" placeholder="https://yourwebsite.com">
+                        <button type="submit">Update Profile</button>
+                    </form>
+                    <p id="profile-msg" class="success-msg hidden"></p>
+                </section>
+            </div>
+
+            <!-- MARKETPLACE TAB -->
+            <div id="tab-marketplace" class="console-tab-content hidden">
+                <section class="glass-card">
+                    <h2>Upload Template</h2>
+                    <p class="text-muted">Our AI will review your template. If it scores 80 or above, it will be listed in the store!</p>
+                    <form id="marketplace-upload-form" class="auth-form" style="margin-top: 1rem;">
+                        <input type="text" id="mp-title" placeholder="Template Title" required>
+                        <input type="url" id="mp-url" placeholder="Live Preview URL (https://...)" required>
+                        <input type="number" id="mp-price" placeholder="Price ($)" step="0.01" required>
+                        <button type="submit" id="mp-submit-btn">
+                            <span class="btn-text">Upload & Analyze</span>
+                            <div class="spinner hidden"></div>
+                        </button>
+                    </form>
+                    <div id="mp-upload-result" class="hidden" style="margin-top: 1rem;"></div>
+                </section>
+
+                <section class="storefront" style="margin-top: 2rem;">
+                    <h2>Approved Templates Store</h2>
+                    <div id="marketplace-grid" class="marketplace-grid">
+                        <!-- Templates injected via JS -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- ADMIN TAB -->
+            <div id="tab-admin" class="console-tab-content hidden">
+                <section class="glass-card">
+                    <h2>Registered Users</h2>
+                    <button id="refresh-users-btn" class="export-btn" style="margin-bottom: 1rem;">Refresh Users</button>
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-list">
+                                <!-- Users injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
