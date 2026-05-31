@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema({
     website: String
   },
   emailVerified: { type: Boolean, default: false },
+  emailVerificationOtp: String,
+  emailVerificationExpires: Date,
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   lastLogin: Date,
@@ -29,6 +31,10 @@ userSchema.methods.toJSON = function() {
 
 userSchema.statics.findByEmail = function(email) {
   return this.findOne({ email });
+};
+
+userSchema.statics.findByEmailLean = function(email) {
+  return this.findOne({ email }).lean();
 };
 
 userSchema.statics.findById = function(id) {

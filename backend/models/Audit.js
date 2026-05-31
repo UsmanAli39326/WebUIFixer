@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const auditSchema = new mongoose.Schema({
   id: { type: String, unique: true, default: () => Date.now().toString() },
-  userId: String,
+  userId: { type: String, index: true },
   url: String,
   summary: {
     currentScore: Number,
@@ -29,7 +29,7 @@ const auditSchema = new mongoose.Schema({
   fixedHtml: String,
   styleOverlay: Object,
   duration: Number,
-  timestamp: { type: Date, default: Date.now },
+  timestamp: { type: Date, default: Date.now, index: true },
   expiresAt: {
     type: Date,
     default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
@@ -37,39 +37,44 @@ const auditSchema = new mongoose.Schema({
   }
 });
 
-const Audit = mongoose.model('Audit', auditSchema);
+auditSchema.index({ userId: 1, timestamp: -1 });
 
-module.exports = {
-  save: async (id, data) => {
-    // If saving an existing audit using the same method, we might want to use findOneAndUpdate 
-    // but the guide specifies creating a new one. Let's use findOneAndUpdate with upsert
-    // to match the original in-memory Map behaviour (Map.set(id, data))
-    const auditData = { id, ...data };
-    await Audit.findOneAndUpdate({ id }, auditData, { upsert: true, new: true });
-    return id;
-  },
-  
-  get: async (id) => {
-    return await Audit.findOne({ id }).lean();
-  },
-  
-  getByUserId: async (userId) => {
-    return await Audit.find({ userId }).sort({ timestamp: -1 }).limit(10).lean();
-  },
-  
-  delete: async (id) => {
-    return await Audit.deleteOne({ id });
-  },
-  
-  getAll: async () => {
-    return await Audit.find({}).lean();
-  },
-
-  setIssueAccepted: async (auditId, ruleId, accepted) => {
-    return await Audit.findOneAndUpdate(
-      { id: auditId, 'issues.ruleId': ruleId },
-      { $set: { 'issues.$.accepted': accepted } },
-      { new: true }
-    ).lean();
-  }
+auditSchema.statics.saveAudit = async function(id, data) {
+  const auditData = { id, ...data };
+  await this.findOneAndUpdate({ id }, auditData, { upsert: true, new: true });
+  return id;
 };
+
+auditSchema.statics.get = async function(id) {
+  return await this.findOne({ id }).lean();
+};
+
+auditSchema.statics.getByUserId = async function(userId, page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+  const total = await this.countDocuments({ userId });
+  const audits = await this.find({ userId })
+    .sort({ timestamp: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+  return { audits, total, page, pages: Math.ceil(total / limit) };
+};
+
+auditSchema.statics.delete = async function(id) {
+  return await this.deleteOne({ id });
+};
+
+auditSchema.statics.getAll = async function() {
+  return await this.find({}).lean();
+};
+
+auditSchema.statics.setIssueAccepted = async function(auditId, ruleId, accepted) {
+  return await this.findOneAndUpdate(
+    { id: auditId, 'issues.ruleId': ruleId },
+    { $set: { 'issues.$.accepted': accepted } },
+    { new: true }
+  ).lean();
+};
+
+const Audit = mongoose.model('Audit', auditSchema);
+module.exports = Audit;

@@ -95,6 +95,13 @@ router.post("/upload", verifyToken, upload.fields([{ name: 'file', maxCount: 1 }
   }
 });
 
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError || err) {
+    return res.status(400).json({ error: err.message });
+  }
+  next();
+});
+
 /**
  * GET /api/marketplace/templates
  * Get all approved templates for sale, with optional search query
@@ -158,11 +165,6 @@ router.post('/templates/:id/purchase', verifyToken, async (req, res) => {
   }
 });
 
-router.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError || err) {
-    return res.status(400).json({ error: err.message });
-  }
-  next();
-});
+
 
 module.exports = router;

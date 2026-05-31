@@ -116,13 +116,16 @@ def analyze(elements):
         severity_counts[severity] += 1
         type_counts[issue["type"]] += 1
 
+    total = len(elements)
+    compliance = round((1 - len(issues) / max(total, 1)) * 100, 1) if total > 0 else 100.0
     summary = {
         "totalIssues": len(issues),
         "bySeverity": severity_counts,
         "byType": type_counts,
         "elementsScanned": len(elements),
         "currentScore": calculate_score(issues, len(elements)),
-        "projectedScore": 100 # Assuming all identified issues are fixed
+        "projectedScore": 100, # Assuming all identified issues are fixed
+        "compliancePercentage": compliance
     }
 
     return {"issues": issues, "summary": summary}

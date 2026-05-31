@@ -12,31 +12,31 @@ const templateSchema = new mongoose.Schema({
   category: { type: String, default: '' },
   description: { type: String, default: '' },
   imagePath: { type: String, default: '' },
+  issues: [Object],
   createdAt: { type: Date, default: Date.now }
 });
 
-const Template = mongoose.model('Template', templateSchema);
-
-module.exports = {
-  add: async (templateData) => {
-    const newTemplate = new Template(templateData);
-    await newTemplate.save();
-    return newTemplate.toObject();
-  },
-  
-  getAll: async () => {
-    return await Template.find({}).sort({ createdAt: -1 }).lean();
-  },
-
-  findAllApproved: async () => {
-    return await Template.find({ status: 'approved' }).sort({ createdAt: -1 }).lean();
-  },
-  
-  findById: async (id) => {
-    return await Template.findOne({ id }).lean();
-  },
-  
-  deleteById: async (id) => {
-    return await Template.deleteOne({ id });
-  }
+templateSchema.statics.add = async function(templateData) {
+  const newTemplate = new this(templateData);
+  await newTemplate.save();
+  return newTemplate.toObject();
 };
+
+templateSchema.statics.getAll = async function() {
+  return await this.find({}).sort({ createdAt: -1 }).lean();
+};
+
+templateSchema.statics.findAllApproved = async function() {
+  return await this.find({ status: 'approved' }).sort({ createdAt: -1 }).lean();
+};
+
+templateSchema.statics.findById = async function(id) {
+  return await this.findOne({ id }).lean();
+};
+
+templateSchema.statics.deleteById = async function(id) {
+  return await this.deleteOne({ id });
+};
+
+const Template = mongoose.model('Template', templateSchema);
+module.exports = Template;

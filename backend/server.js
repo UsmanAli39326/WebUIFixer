@@ -151,12 +151,8 @@ app.get("/audit", verifyToken, auditLimiter, urlValidator, async (req, res) => {
 
     // 3. Save to Audit Store for reporting
     const auditId = Date.now().toString();
-    console.log("DEBUG: issues type:", typeof result.issues, "isArray:", Array.isArray(result.issues));
-    if (Array.isArray(result.issues) && result.issues.length > 0) {
-      console.log("DEBUG: first issue type:", typeof result.issues[0]);
-      console.log("DEBUG: first issue:", result.issues[0]);
-    }
-    await Audit.save(auditId, { ...result, url, userId: req.user.id });
+    logger.debug("Audit result issues:", { type: typeof result.issues, isArray: Array.isArray(result.issues) });
+    await Audit.saveAudit(auditId, { ...result, url, userId: req.user.id });
     log(req.user.id, 'audit_created', { url });
 
     res.json({
@@ -187,10 +183,14 @@ app.get("/audit", verifyToken, auditLimiter, urlValidator, async (req, res) => {
 /**
  * GET /api/audit/:id/report/pdf
  */
-app.get("/api/audit/:id/report/pdf", async (req, res) => {
+app.get("/api/audit/:id/report/pdf", verifyToken, async (req, res) => {
   try {
     const audit = await Audit.get(req.params.id);
     if (!audit) return res.status(404).json({ error: "Audit not found" });
+
+    if (audit.userId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename=audit-report-${req.params.id}.pdf`);
@@ -206,10 +206,14 @@ app.get("/api/audit/:id/report/pdf", async (req, res) => {
 /**
  * GET /api/audit/:id/report/html
  */
-app.get("/api/audit/:id/report/html", async (req, res) => {
+app.get("/api/audit/:id/report/html", verifyToken, async (req, res) => {
   try {
     const audit = await Audit.get(req.params.id);
     if (!audit) return res.status(404).json({ error: "Audit not found" });
+
+    if (audit.userId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
     const html = ReportService.generateHTML(audit);
     res.setHeader("Content-Type", "text/html");

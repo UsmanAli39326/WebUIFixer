@@ -19,8 +19,17 @@ function analyze(elements) {
   const severityCounts = { high: 0, medium: 0, low: 0 };
   const typeCounts = { accessibility: 0, design: 0 };
 
+  if (!Array.isArray(elements)) {
+    throw new Error("Elements must be an array");
+  }
+  
+  const validElements = elements.filter(el => el && typeof el === 'object');
+  if (validElements.length === 0) {
+    throw new Error("No valid elements to analyze");
+  }
+
   // ── Per-element rules ──────────────────────────────────────────────
-  for (const element of elements) {
+  for (const element of validElements) {
     // WCAG rules
     const wcagIssues = runWcagRules(element);
     for (const issue of wcagIssues) {
@@ -59,7 +68,7 @@ function analyze(elements) {
   }
 
   // ── Page-level rules ───────────────────────────────────────────────
-  const colorIssues = checkColorConsistency(elements);
+  const colorIssues = checkColorConsistency(validElements);
   for (const issue of colorIssues) {
     issues.push({
       element: issue.element || "page",

@@ -176,6 +176,63 @@ def check_accessibility_labels(element):
         }
     return None
 
+def check_input_label(element):
+    if element.get("tag") not in ["input", "select", "textarea"]:
+        return None
+    input_type = element.get("inputType", "")
+    if input_type == "hidden":
+        return None
+    has_label = any([
+        element.get("ariaLabel"),
+        element.get("ariaLabelledBy"),
+        element.get("title")
+    ])
+    has_placeholder = bool(element.get("placeholder"))
+    if not has_label and not has_placeholder:
+        return {
+            "id": "wcag-missing-input-label",
+            "type": "accessibility",
+            "message": f"<{element.get('tag')}> has no associated label, aria-label, or title.",
+            "fix": "Add a <label> element, aria-label, or title attribute.",
+            "severity": "high"
+        }
+    if not has_label and has_placeholder:
+        return {
+            "id": "wcag-placeholder-only-label",
+            "type": "accessibility",
+            "message": f"<{element.get('tag')}> uses placeholder as its only label — not accessible.",
+            "fix": "Add a visible <label> or aria-label; do not rely on placeholder alone.",
+            "severity": "low"
+        }
+    return None
+
+def check_broken_layout(element):
+    bbox = element.get("boundingBox", {})
+    has_text = bool(element.get("text", "").strip())
+    if has_text and (bbox.get("width", 1) == 0 or bbox.get("height", 1) == 0):
+        return {
+            "id": "wcag-broken-layout",
+            "type": "accessibility",
+            "message": f"<{element.get('tag')}> has text content but zero computed size — likely a layout collapse.",
+            "fix": "Check CSS display, overflow, or parent container constraints causing this element to collapse.",
+            "severity": "high"
+        }
+    return None
+
+def check_keyboard_accessibility(element):
+    tab_index = element.get("tabIndex")
+    if tab_index is None:
+        return None
+    if tab_index > 0:
+        return {
+            "id": "wcag-positive-tabindex",
+            "type": "accessibility",
+            "message": f"<{element.get('tag')}> has tabindex={tab_index}. Positive tabindex values disrupt natural keyboard focus order.",
+            "fix": "Remove the tabindex or set it to 0 to use natural document order.",
+            "severity": "medium"
+        }
+    return None
+
 def check_heading_hierarchy(elements):
     """
     Page-level rule to check if headings are in the correct order (H1 -> H2 -> H3...).
@@ -205,7 +262,7 @@ def check_heading_hierarchy(elements):
     return issues
 
 def run_wcag_rules(element):
-    rules = [check_color_contrast, check_font_size, check_missing_text, check_accessibility_labels, check_alt_text_quality]
+    rules = [check_color_contrast, check_font_size, check_missing_text, check_accessibility_labels, check_alt_text_quality, check_input_label, check_broken_layout, check_keyboard_accessibility]
     issues = []
     for rule in rules:
         result = rule(element)

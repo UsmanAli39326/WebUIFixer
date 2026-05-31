@@ -118,8 +118,10 @@ router.delete("/account", verifyToken, async (req, res) => {
  */
 router.get("/audits", verifyToken, async (req, res) => {
   try {
-    const audits = await Audit.getByUserId(req.user.id);
-    res.json(audits);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const auditData = await Audit.getByUserId(req.user.id, page, limit);
+    res.json(auditData);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch audits" });
   }

@@ -14,7 +14,8 @@ jest.mock('../ai/fastapiClient', () => ({
 }));
 
 jest.mock('../services/emailService', () => ({
-  sendPasswordResetEmail: jest.fn().mockResolvedValue(true)
+  sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
+  sendVerificationEmail: jest.fn().mockResolvedValue(true)
 }));
 
 const app = require('../server');
@@ -27,6 +28,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 let mongoServer;
 
 beforeAll(async () => {
+  process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
   if (mongoose.connection.readyState === 0) {
@@ -93,7 +95,7 @@ async function registerAdmin() {
 
 async function createAudit(userId, overrides = {}) {
   const id = Date.now().toString();
-  await Audit.save(id, {
+  await Audit.saveAudit(id, {
     url: 'https://example.com',
     userId,
     summary: { currentScore: 80, totalIssues: 1, bySeverity: { high: 1 } },
@@ -104,9 +106,7 @@ async function createAudit(userId, overrides = {}) {
 }
 
 function makeToken(payload) {
-  // Use JWT_SECRET from env or default
-  const secret = process.env.JWT_SECRET || 'your_super_secret_jwt_key_here';
-  return jwt.sign(payload, secret, { expiresIn: '1h' });
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 
 describe('1. Auth — Registration', () => {
@@ -441,24 +441,25 @@ describe('9. Admin — delete user', () => {
 
 describe('10. Audit — report endpoints', () => {
   it('GET /api/audit/:id/report/pdf with valid audit -> 200, Content-Type application/pdf', async () => {
-    const { user } = await registerUser();
+    const { user, token } = await registerUser();
     const audit = await createAudit(user.id);
-    const res = await request.get(`/api/audit/${audit.id}/report/pdf`);
+    const res = await request.get(`/api/audit/${audit.id}/report/pdf`).set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toBe('application/pdf');
   });
 
   it('GET /api/audit/:id/report/html with valid audit -> 200, Content-Type text/html', async () => {
-    const { user } = await registerUser();
+    const { user, token } = await registerUser();
     const audit = await createAudit(user.id);
-    const res = await request.get(`/api/audit/${audit.id}/report/html`);
+    const res = await request.get(`/api/audit/${audit.id}/report/html`).set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/text\/html/);
     expect(res.text).toMatch(/score/i);
   });
 
   it('GET /api/audit/:id/report/pdf with non-existent id -> 404', async () => {
-    const res = await request.get(`/api/audit/999999999/report/pdf`);
+    const { token } = await registerUser();
+    const res = await request.get(`/api/audit/999999999/report/pdf`).set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(404);
   });
 });

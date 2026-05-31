@@ -6,7 +6,7 @@ const TokenBlacklist = require("../models/TokenBlacklist");
 const RefreshToken = require("../models/RefreshToken");
 const crypto = require('crypto');
 const { log } = require('../services/activityLogger');
-const { sendPasswordResetEmail } = require('../services/emailService');
+const { sendPasswordResetEmail, sendVerificationEmail } = require('../services/emailService');
 const { registrationValidator, loginValidator } = require("../validation");
 const { verifyToken } = require("../middleware/auth");
 
@@ -27,17 +27,24 @@ router.post("/register", registrationValidator, async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const otp = crypto.randomInt(100000, 999999).toString();
     const newUser = {
       name,
       email,
       password: hashedPassword,
-      role: "user"
+      role: "user",
+      emailVerificationOtp: otp,
+      emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
     };
 
     const createdUser = await User.create(newUser);
+    
+    // Attempt to send verification email, but don't fail registration if it fails
+    sendVerificationEmail(email, otp).catch(e => console.error("Could not send verification email", e));
 
     res.status(201).json({ message: "User registered", user: createdUser });
   } catch (err) {
+    console.error("Registration error details:", err);
     res.status(500).json({ error: "Registration failed" });
   }
 });
@@ -167,16 +174,15 @@ router.post("/reset-password", async (req, res) => {
     user.passwordResetExpires = undefined;
     await user.save();
 
+    // Invalidate refresh tokens
+    await RefreshToken.deleteMany({ userId: user.id });
+
     res.json({ message: "Password reset successfully" });
   } catch (err) {
     res.status(500).json({ error: "Failed to reset password" });
   }
 });
 
-/**
- * POST /api/auth/verify-email
- * Verify email address
- */
 router.post("/verify-email", async (req, res) => {
   const { email, code } = req.body;
 
@@ -185,16 +191,20 @@ router.post("/verify-email", async (req, res) => {
   }
 
   try {
-    // TODO: Verify email code from database
-    // For now, simple validation
     const user = await User.findByEmail(email);
     
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
+    if (user.emailVerificationOtp !== code || user.emailVerificationExpires < Date.now()) {
+      return res.status(400).json({ error: "Invalid or expired verification code" });
+    }
+
     // Mark as verified
     user.emailVerified = true;
+    user.emailVerificationOtp = undefined;
+    user.emailVerificationExpires = undefined;
     await user.save();
 
     res.json({ message: "Email verified successfully" });
