@@ -150,9 +150,91 @@ function checkMissingText(element) {
   return null;
 }
 
+/**
+ * Rule 4 — Form Field Labels
+ * WCAG 1.3.1: Form inputs must have an associated label or descriptive attribute.
+ */
+function checkFormLabels(element) {
+  if (!['input', 'select', 'textarea'].includes(element.tag)) return null;
+  // Ignore hidden inputs or non-interactive types
+  if (element.attributes && (element.attributes.type === 'hidden' || element.attributes.type === 'submit' || element.attributes.type === 'button')) return null;
+
+  const hasLabel = !!(
+    element.ariaLabel ||
+    element.ariaLabelledBy ||
+    element.title ||
+    (element.id && true) // Scraper might not link labels directly, but checking aria attributes and placeholder helps.
+  );
+
+  const placeholder = element.attributes ? element.attributes.placeholder : null;
+
+  if (!hasLabel && !placeholder) {
+    return {
+      id: "wcag-form-label",
+      type: "accessibility",
+      message: `Form field <${element.tag}> has no associated label or descriptive attribute.`,
+      fix: "Add an aria-label, title, or a linked <label>.",
+      severity: "high"
+    };
+  }
+  return null;
+}
+
+/**
+ * Rule 5 — Focus Visible
+ * WCAG 2.4.7: Interactive elements must have a visible focus indicator.
+ */
+function checkFocusIndicator(element) {
+  if (!element.isInteractive) return null;
+
+  const styles = element.styles || {};
+  const outline = styles.outline || 'none';
+  const boxShadow = styles.boxShadow || 'none';
+  
+  // Browsers apply default outlines, but if explicitly set to none without box-shadow fallback:
+  if (outline === 'none' && boxShadow === 'none' && styles.outlineWidth === '0px') {
+    return {
+      id: "wcag-focus-visible",
+      type: "accessibility",
+      message: `Interactive element <${element.tag}> may not have a visible focus indicator.`,
+      fix: "Ensure an outline or box-shadow is present on :focus state.",
+      severity: "medium"
+    };
+  }
+  return null;
+}
+
+/**
+ * Rule 6 — Color Not Sole Means
+ * WCAG 1.4.1: Color must not be used as the sole method of conveying meaning.
+ */
+function checkColorNotSoleMeans(element) {
+  if (!element.text && element.styles && element.styles.backgroundColor && element.styles.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+    // If it's a structural element (like div/span) without text/icon but has background color, it might be a status indicator.
+    // Exclude images, inputs, and elements with aria labels.
+    if (!['img', 'input', 'canvas', 'svg'].includes(element.tag) && !element.ariaLabel && !element.alt) {
+      return {
+        id: "wcag-color-not-sole-means",
+        type: "accessibility",
+        message: "Color may be the only way to distinguish this element.",
+        fix: "Add text, an icon, or a pattern in addition to color to convey meaning.",
+        severity: "medium"
+      };
+    }
+  }
+  return null;
+}
+
 // ── Public API ───────────────────────────────────────────────────────
 
-const wcagRules = [checkColorContrast, checkFontSize, checkMissingText];
+const wcagRules = [
+  checkColorContrast, 
+  checkFontSize, 
+  checkMissingText, 
+  checkFormLabels, 
+  checkFocusIndicator, 
+  checkColorNotSoleMeans
+];
 
 /**
  * Run all WCAG rules against a single element.

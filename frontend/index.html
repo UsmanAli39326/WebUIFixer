@@ -6,6 +6,7 @@
     <title>Web Accessibility & Design Auditor</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 </head>
 <body>
     <div class="background-mesh"></div>
@@ -145,7 +146,13 @@
                     <pre><code id="ai-code"></code></pre>
                 </div>
                 <div id="ai-preview-view" class="tab-content hidden">
+                    <div id="preview-warning" class="warning-banner glass-card" style="margin-bottom: 1rem; border-color: #f59e0b;">
+                        ⚠️ <strong>Preview limitations:</strong> External scripts will not execute in the sandbox. For accurate rendering, use the "View Actual Site" button below.
+                    </div>
                     <iframe id="ai-preview-frame" title="AI Fix Preview"></iframe>
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <button id="view-actual-site-btn" class="action-btn" style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; color: #10b981;">View Actual Site →</button>
+                    </div>
                 </div>
             </div>
 

@@ -68,6 +68,8 @@ function analyze(elements) {
   }
 
   // ── Page-level rules ───────────────────────────────────────────────
+  
+  // 1. Color Consistency
   const colorIssues = checkColorConsistency(validElements);
   for (const issue of colorIssues) {
     issues.push({
@@ -81,6 +83,57 @@ function analyze(elements) {
     });
     severityCounts[issue.severity]++;
     typeCounts[issue.type]++;
+  }
+
+  // 2. Page Title (WCAG 2.4.2)
+  const titleElement = validElements.find(el => el.tag === 'title');
+  if (!titleElement || !titleElement.text || titleElement.text.trim() === '') {
+    issues.push({
+      element: "title",
+      id: "wcag-page-title",
+      className: "",
+      text: "",
+      issue: "Page has no descriptive title",
+      fix: "Add a <title> tag with descriptive text in the <head>",
+      type: "accessibility",
+      severity: "high",
+      ruleId: "wcag-page-title"
+    });
+    severityCounts["high"]++;
+    typeCounts["accessibility"]++;
+  } else if (titleElement.text.trim().length < 5) {
+    issues.push({
+      element: "title",
+      id: "wcag-title-too-short",
+      className: "",
+      text: titleElement.text.trim(),
+      issue: "Page title is too short or generic",
+      fix: "Use a descriptive page title (20-60 characters)",
+      type: "accessibility",
+      severity: "medium",
+      ruleId: "wcag-title-too-short"
+    });
+    severityCounts["medium"]++;
+    typeCounts["accessibility"]++;
+  }
+
+  // 3. Language Declaration (WCAG 3.1.1)
+  const htmlElement = validElements.find(el => el.tag === 'html');
+  const lang = htmlElement && htmlElement.attributes ? htmlElement.attributes.lang : null;
+  if (!lang) {
+    issues.push({
+      element: "html",
+      id: "wcag-language-missing",
+      className: "",
+      text: "",
+      issue: "Page has no language declaration",
+      fix: "Add a lang attribute to the <html> tag (e.g., lang='en')",
+      type: "accessibility",
+      severity: "medium",
+      ruleId: "wcag-language-missing"
+    });
+    severityCounts["medium"]++;
+    typeCounts["accessibility"]++;
   }
 
   // ── Summary stats ──────────────────────────────────────────────────

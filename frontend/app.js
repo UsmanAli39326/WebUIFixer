@@ -292,7 +292,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 aiCode.textContent = finalHtml;
-                aiPreviewFrame.srcdoc = finalHtml;
+
+                // Sanitize HTML with DOMPurify
+                let sanitizedHtml = finalHtml;
+                if (window.DOMPurify) {
+                    sanitizedHtml = DOMPurify.sanitize(finalHtml, {
+                        ALLOWED_TAGS: ['a', 'b', 'blockquote', 'br', 'button', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'html', 'i', 'img', 'input', 'label', 'li', 'link', 'meta', 'ol', 'p', 'section', 'span', 'strong', 'style', 'table', 'tbody', 'td', 'textarea', 'th', 'thead', 'title', 'tr', 'ul'],
+                        ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'title', 'type', 'value', 'placeholder', 'disabled', 'checked', 'required', 'for', 'name', 'colspan', 'rowspan', 'rel']
+                    });
+                }
+
+                // Use Blob URL instead of srcdoc to allow external resources
+                const blob = new Blob([sanitizedHtml], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                if (aiPreviewFrame.dataset.blobUrl) {
+                    URL.revokeObjectURL(aiPreviewFrame.dataset.blobUrl);
+                }
+                aiPreviewFrame.dataset.blobUrl = blobUrl;
+                aiPreviewFrame.src = blobUrl;
+
+                const viewActualSiteBtn = document.getElementById('view-actual-site-btn');
+                if (viewActualSiteBtn) {
+                    viewActualSiteBtn.onclick = () => window.open(targetUrl, '_blank');
+                }
+
                 aiContainer.classList.remove('hidden');
 
                 // Reset tabs to code view
