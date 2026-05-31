@@ -3,6 +3,8 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Template = require("../models/Template");
+const Download = require("../models/Download");
+const Payment = require("../models/Payment");
 const { verifyToken } = require("../middleware/auth");
 const { analyzeWebsite } = require("../ai/fastapiClient");
 
@@ -14,6 +16,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+const ALLOWED_MIME = ['application/zip', 'application/x-zip-compressed', 'image/png', 'image/jpeg', 'image/webp'];
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadDir);
@@ -23,14 +26,21 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + path.extname(file.originalname));
   }
 });
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_MIME.includes(file.mimetype)) cb(null, true);
+    else cb(new Error(`File type not allowed: ${file.mimetype}`), false);
+  }
+});
 
 /**
  * POST /api/marketplace/upload
  * Upload a template (via URL and optional file), AI checks it.
  */
-router.post("/upload", verifyToken, upload.single('file'), async (req, res) => {
-  const { title, url, price } = req.body;
+router.post("/upload", verifyToken, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'image', maxCount: 1 }]), async (req, res) => {
+  const { title, url, price, category, description } = req.body;
   if (!title || !url || price === undefined) {
     return res.status(400).json({ error: "Missing title, url, or price" });
   }
@@ -52,8 +62,13 @@ router.post("/upload", verifyToken, upload.single('file'), async (req, res) => {
     const status = isApproved ? "approved" : "rejected";
     
     let filePath = "";
-    if (req.file) {
-      filePath = req.file.filename;
+    if (req.files && req.files.file) {
+      filePath = req.files.file[0].filename;
+    }
+
+    let imagePath = "";
+    if (req.files && req.files.image) {
+      imagePath = req.files.image[0].filename;
     }
 
     const newTemplate = await Template.add({
@@ -61,9 +76,12 @@ router.post("/upload", verifyToken, upload.single('file'), async (req, res) => {
       title,
       url,
       price: numericPrice,
+      category: category || "",
+      description: description || "",
       score,
       status,
       filePath,
+      imagePath,
       issues: analysis.issues // Store issues so user can see why it was rejected
     });
 
@@ -100,7 +118,7 @@ router.get("/templates", async (req, res) => {
  * GET /api/marketplace/templates/:id/download
  * Download the uploaded ZIP file for a template
  */
-router.get("/templates/:id/download", async (req, res) => {
+router.get("/templates/:id/download", verifyToken, async (req, res) => {
   try {
     const template = await Template.findById(req.params.id);
     if (!template) {
@@ -115,10 +133,36 @@ router.get("/templates/:id/download", async (req, res) => {
       return res.status(404).json({ error: "File not found on server" });
     }
     
-    res.download(file);
+    res.download(file, err => {
+      if (!err) {
+        Download.create({ templateId: template.id, userId: req.user.id }).catch(console.error);
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: "Failed to download template" });
   }
+});
+
+/**
+ * POST /api/marketplace/templates/:id/purchase
+ * Stub endpoint for template purchases
+ */
+router.post('/templates/:id/purchase', verifyToken, async (req, res) => {
+  try {
+    const template = await Template.findById(req.params.id);
+    if (!template) return res.status(404).json({ error: 'Template not found' });
+    await Payment.create({ userId: req.user.id, templateId: template.id, amount: template.price });
+    res.status(501).json({ message: 'Payment processing not yet implemented. Record created.' });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to process purchase" });
+  }
+});
+
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError || err) {
+    return res.status(400).json({ error: err.message });
+  }
+  next();
 });
 
 module.exports = router;

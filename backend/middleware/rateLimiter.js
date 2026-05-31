@@ -26,10 +26,12 @@ if (process.env.REDIS_URL) {
   logger.info('Using Memory store for rate limiting (no REDIS_URL provided)');
 }
 
+const isTest = process.env.NODE_ENV === 'test';
+
 const apiLimiter = rateLimit({
   store: store,
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per windowMs
+  max: isTest ? 1000 : 100, // 100 requests per windowMs
   message: { error: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -38,7 +40,7 @@ const apiLimiter = rateLimit({
 const authLimiter = rateLimit({
   store: store,
   windowMs: 15 * 60 * 1000,
-  max: 15, // 15 attempts per 15 minutes (bumped slightly for testing)
+  max: isTest ? 100 : 15, // 15 attempts per 15 minutes
   message: { error: 'Too many login attempts, please try again later' },
   skipSuccessfulRequests: true,
 });
@@ -46,7 +48,7 @@ const authLimiter = rateLimit({
 const auditLimiter = rateLimit({
   store: store,
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 50, // 50 analyses per hour
+  max: isTest ? 500 : 50, // 50 analyses per hour
   message: { error: 'Analysis limit reached, try again later' },
 });
 

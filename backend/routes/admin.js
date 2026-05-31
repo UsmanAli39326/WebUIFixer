@@ -2,6 +2,8 @@ const express = require("express");
 const User = require("../models/User");
 const Audit = require("../models/Audit");
 const Template = require("../models/Template");
+const Download = require("../models/Download");
+const Payment = require("../models/Payment");
 const { verifyToken, isAdmin } = require("../middleware/auth");
 
 const router = express.Router();
@@ -15,11 +17,16 @@ router.get("/analytics", verifyToken, isAdmin, async (req, res) => {
     const users = await User.findAll();
     const audits = await Audit.getAll();
     const templates = await Template.getAll();
+    const downloads = await Download.countDocuments();
+    const payments = await Payment.find({ status: 'completed' });
+    const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
 
     res.json({
       totalUsers: users.length,
       totalAudits: audits.length,
-      totalTemplates: templates.length
+      totalTemplates: templates.length,
+      totalDownloads: downloads,
+      totalRevenue
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch analytics" });
@@ -68,6 +75,22 @@ router.patch("/users/:id/block", verifyToken, isAdmin, async (req, res) => {
     res.json({ message: "User status updated", user: updatedUser });
   } catch (err) {
     res.status(500).json({ error: "Failed to update user status" });
+  }
+});
+
+const ActivityLog = require('../models/ActivityLog');
+router.get('/logs', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 50;
+    const logs = await ActivityLog.find({})
+      .sort({ timestamp: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch activity logs" });
   }
 });
 

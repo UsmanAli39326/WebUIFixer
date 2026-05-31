@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
-  id: { type: String, unique: true, default: () => Date.now().toString() },
+  id: { type: String, unique: true, default: () => crypto.randomUUID() },
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -14,7 +15,9 @@ const userSchema = new mongoose.Schema({
   emailVerified: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
-  lastLogin: Date
+  lastLogin: Date,
+  passwordResetOtp: String,
+  passwordResetExpires: Date
 });
 
 // Hide password in responses
@@ -24,36 +27,29 @@ userSchema.methods.toJSON = function() {
   return obj;
 };
 
+userSchema.statics.findByEmail = function(email) {
+  return this.findOne({ email });
+};
+
+userSchema.statics.findById = function(id) {
+  return this.findOne({ id });
+};
+
+userSchema.statics.findAll = function() {
+  return this.find({}).select('-password');
+};
+
+userSchema.statics.updateProfile = function(id, data) {
+  const allowed = {};
+  if (data.name) allowed.name = data.name;
+  if (data.profile) allowed.profile = data.profile;
+  return this.findOneAndUpdate({ id }, allowed, { new: true });
+};
+
+userSchema.statics.deleteById = function(id) {
+  return this.deleteOne({ id });
+};
+
 const User = mongoose.model('User', userSchema);
 
-module.exports = {
-  create: async (userData) => {
-    const newUser = new User(userData);
-    await newUser.save();
-    return newUser;
-  },
-  
-  findByEmail: async (email) => {
-    return await User.findOne({ email });
-  },
-  
-  findById: async (id) => {
-    return await User.findOne({ id });
-  },
-  
-  findAll: async () => {
-    return await User.find({}).select('-password');
-  },
-  
-  updateProfile: async (id, profileData) => {
-    return await User.findOneAndUpdate(
-      { id },
-      { profile: profileData },
-      { new: true }
-    );
-  },
-  
-  deleteById: async (id) => {
-    return await User.deleteOne({ id });
-  }
-};
+module.exports = User;

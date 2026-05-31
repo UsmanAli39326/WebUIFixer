@@ -9,11 +9,13 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const marketplaceRoutes = require("./routes/marketplace");
 const adminRoutes = require("./routes/admin");
+const recommendationsRoutes = require('./routes/recommendations');
 const { verifyToken } = require("./middleware/auth");
 const Audit = require("./models/Audit"); // Updated to use Mongoose model
 const ReportService = require("./services/reportService");
 const { connectDatabase } = require("./db");
 const logger = require("./logger");
+const { log } = require('./services/activityLogger');
 const { apiLimiter, authLimiter, auditLimiter } = require("./middleware/rateLimiter");
 const { urlValidator } = require("./validation");
 
@@ -55,28 +57,53 @@ app.use("/api/auth", authLimiter, authRoutes); // Stricter limit for auth
 app.use("/api/user", userRoutes);
 app.use("/api/marketplace", marketplaceRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/recommendations", recommendationsRoutes);
+const path = require("path");
+app.use('/api/marketplace/uploads', (req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'none';");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Content-Disposition", "attachment");
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
+const dns = require('dns').promises;
+
 /**
- * Basic URL validation with SSRF protection.
+ * Basic URL validation with robust SSRF protection.
  */
-function isValidUrl(str) {
+async function isSafeUrl(str) {
   try {
     const url = new URL(str);
     if (!["http:", "https:"].includes(url.protocol)) return false;
     
     const hostname = url.hostname;
     
-    // Blocklist for SSRF prevention
-    if (
-      hostname === "localhost" ||
-      hostname.startsWith("127.") ||
-      hostname.startsWith("10.") ||
-      hostname.startsWith("192.168.") ||
-      hostname.startsWith("169.254.") ||
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
-    ) {
+    // Quick block for exact string matches
+    if (hostname === "localhost" || hostname === "[::1]" || hostname === "::1") {
+      return false;
+    }
+    
+    try {
+      const lookup = await dns.lookup(hostname);
+      const ip = lookup.address;
+      
+      // Blocklist for SSRF prevention on resolved IP
+      if (
+        ip === "127.0.0.1" ||
+        ip === "::1" ||
+        ip.startsWith("10.") ||
+        ip.startsWith("192.168.") ||
+        ip.startsWith("169.254.") ||
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip) ||
+        ip.startsWith("0.") ||
+        ip === "0.0.0.0"
+      ) {
+        return false;
+      }
+    } catch (dnsErr) {
+      // If DNS resolution fails, we shouldn't audit it anyway
       return false;
     }
     
@@ -104,7 +131,8 @@ app.get("/audit", verifyToken, auditLimiter, urlValidator, async (req, res) => {
     return res.status(400).json({ error: "Missing 'url' parameter" });
   }
 
-  if (!isValidUrl(url)) {
+  const safe = await isSafeUrl(url);
+  if (!safe) {
     return res.status(400).json({
       error: `Invalid URL: "${url}". Must be a valid http or https URL.`,
     });
@@ -129,6 +157,7 @@ app.get("/audit", verifyToken, auditLimiter, urlValidator, async (req, res) => {
       console.log("DEBUG: first issue:", result.issues[0]);
     }
     await Audit.save(auditId, { ...result, url, userId: req.user.id });
+    log(req.user.id, 'audit_created', { url });
 
     res.json({
       id: auditId,
@@ -167,6 +196,7 @@ app.get("/api/audit/:id/report/pdf", async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename=audit-report-${req.params.id}.pdf`);
     
     await ReportService.generatePDF(audit, res);
+    log(undefined, 'report_downloaded', { auditId: req.params.id });
   } catch (err) {
     logger.error("Error generating PDF:", err);
     res.status(500).json({ error: "Failed to generate PDF" });
@@ -187,6 +217,60 @@ app.get("/api/audit/:id/report/html", async (req, res) => {
   } catch (err) {
     logger.error("Error generating HTML:", err);
     res.status(500).json({ error: "Failed to generate HTML" });
+  }
+});
+
+/**
+ * DELETE /api/audit/:id
+ * Delete an audit report
+ */
+app.delete("/api/audit/:id", verifyToken, async (req, res) => {
+  try {
+    const audit = await Audit.get(req.params.id);
+    if (!audit) return res.status(404).json({ error: "Audit not found" });
+    if (audit.userId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    await Audit.delete(req.params.id);
+    res.json({ message: "Audit deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete audit" });
+  }
+});
+
+/**
+ * PATCH /api/audit/:id/suggestions/:ruleId/accept
+ * Mark an AI suggestion as accepted
+ */
+app.patch("/api/audit/:id/suggestions/:ruleId/accept", verifyToken, async (req, res) => {
+  try {
+    const audit = await Audit.get(req.params.id);
+    if (!audit) return res.status(404).json({ error: "Audit not found" });
+    if (audit.userId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const updated = await Audit.setIssueAccepted(req.params.id, req.params.ruleId, true);
+    res.json(updated || { error: "Suggestion not found" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to accept suggestion" });
+  }
+});
+
+/**
+ * PATCH /api/audit/:id/suggestions/:ruleId/reject
+ * Mark an AI suggestion as rejected
+ */
+app.patch("/api/audit/:id/suggestions/:ruleId/reject", verifyToken, async (req, res) => {
+  try {
+    const audit = await Audit.get(req.params.id);
+    if (!audit) return res.status(404).json({ error: "Audit not found" });
+    if (audit.userId !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const updated = await Audit.setIssueAccepted(req.params.id, req.params.ruleId, false);
+    res.json(updated || { error: "Suggestion not found" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to reject suggestion" });
   }
 });
 
@@ -218,10 +302,14 @@ app.get("/", (req, res) => {
 
 // ── Start Server ─────────────────────────────────────────────────────
 
-connectDatabase().then(() => {
-  app.listen(PORT, () => {
-    logger.info(`\n🚀 Auditor API running at http://localhost:${PORT}`);
-    logger.info(`   Try: http://localhost:${PORT}/audit?url=https://example.com`);
-    logger.info(`   AI Engine: http://localhost:8000\n`);
+if (process.env.NODE_ENV !== 'test') {
+  connectDatabase().then(() => {
+    app.listen(PORT, () => {
+      logger.info(`\n🚀 Auditor API running at http://localhost:${PORT}`);
+      logger.info(`   Try: http://localhost:${PORT}/audit?url=https://example.com`);
+      logger.info(`   AI Engine: http://localhost:8000\n`);
+    });
   });
-});
+}
+
+module.exports = app;

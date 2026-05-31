@@ -9,6 +9,9 @@ const templateSchema = new mongoose.Schema({
   filePath: { type: String, required: false },
   status: { type: String, default: 'pending', enum: ['pending', 'approved', 'rejected'] },
   userId: { type: String, required: true }, // The user who uploaded it
+  category: { type: String, default: '' },
+  description: { type: String, default: '' },
+  imagePath: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 

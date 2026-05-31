@@ -31,7 +31,8 @@ router.get("/profile", verifyToken, async (req, res) => {
  */
 router.put("/profile", verifyToken, async (req, res) => {
   try {
-    const updatedUser = await User.updateProfile(req.user.id, req.body);
+    const { name, profile } = req.body;
+    const updatedUser = await User.updateProfile(req.user.id, { name, profile });
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found" });
     }

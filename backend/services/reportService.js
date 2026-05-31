@@ -23,6 +23,10 @@ const ReportService = {
     doc.fontSize(18).text("Summary of Findings", { underline: true });
     doc.moveDown(0.5);
     doc.fontSize(12).text(`Total Issues: ${auditData.summary.totalIssues}`);
+    doc.text(`WCAG Score: ${auditData.summary.currentScore || 'N/A'}/100`);
+    if (auditData.summary.compliancePercentage !== undefined) {
+      doc.text(`Compliance: ${auditData.summary.compliancePercentage}%`);
+    }
     doc.text(`- Critical: ${auditData.summary.bySeverity.critical}`);
     doc.text(`- High: ${auditData.summary.bySeverity.high}`);
     doc.text(`- Medium: ${auditData.summary.bySeverity.medium}`);
@@ -87,6 +91,7 @@ const ReportService = {
         <div class="summary">
           <h2>Summary for ${esc(auditData.url)}</h2>
           <p>Total Issues Found: <strong>${auditData.summary.totalIssues}</strong></p>
+          <p>WCAG Score: <strong>${auditData.summary.currentScore || 'N/A'}/100</strong></p>
           <ul>
             <li>Critical: ${auditData.summary.bySeverity.critical}</li>
             <li>High: ${auditData.summary.bySeverity.high}</li>

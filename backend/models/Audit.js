@@ -22,7 +22,8 @@ const auditSchema = new mongoose.Schema({
       ruleId: String,
       id: String,
       className: String,
-      text: String
+      text: String,
+      accepted: { type: Boolean, default: null }
     }
   ],
   fixedHtml: String,
@@ -62,5 +63,13 @@ module.exports = {
   
   getAll: async () => {
     return await Audit.find({}).lean();
+  },
+
+  setIssueAccepted: async (auditId, ruleId, accepted) => {
+    return await Audit.findOneAndUpdate(
+      { id: auditId, 'issues.ruleId': ruleId },
+      { $set: { 'issues.$.accepted': accepted } },
+      { new: true }
+    ).lean();
   }
 };
