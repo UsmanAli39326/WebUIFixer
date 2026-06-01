@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'https://webuifixer.onrender.com';
 
 class WebFixerAPI {
   constructor() {
@@ -51,12 +51,12 @@ class WebFixerAPI {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    
+
     if (response.token) {
       localStorage.setItem('token', response.token);
       this.token = response.token;
     }
-    
+
     return response;
   }
 

@@ -47,8 +47,8 @@ const authLimiter = rateLimit({
 
 const auditLimiter = rateLimit({
   store: store,
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: isTest ? 500 : 50, // 50 analyses per hour
+  windowMs: 60 * 1000, // 1 minute
+  max: isTest ? 500 : 1, // 1 scan per minute
   message: { error: 'Analysis limit reached, try again later' },
 });
 

@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-playwright
+playwright==1.41.0
 pydantic
 python-dotenv
 openai

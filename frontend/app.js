@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mainAppContent.classList.remove('hidden');
                 logoutBtn.classList.remove('hidden');
                 userNameEl.textContent = userProfile.name;
-                
+
                 // Admin Tab Logic
                 if (userProfile.role === 'admin') {
                     document.getElementById('admin-tab-btn').classList.remove('hidden');
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Populate Profile
                 document.getElementById('profile-bio').value = userProfile.profile?.bio || '';
                 document.getElementById('profile-website').value = userProfile.profile?.website || '';
-                
+
                 fetchTemplates(); // Always load marketplace storefront
 
             } catch (err) {
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(res.message);
                 forgotPasswordForm.classList.add('hidden');
                 resetPasswordForm.classList.remove('hidden');
-            } catch(err) {
+            } catch (err) {
                 alert(err.message);
             }
         });
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(res.message);
                 resetPasswordForm.classList.add('hidden');
                 loginForm.classList.remove('hidden');
-            } catch(err) {
+            } catch (err) {
                 alert(err.message);
             }
         });
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.fixedHtml) {
                 let finalHtml = data.fixedHtml;
-                
+
                 // Inject base tag for relative assets
                 const baseTag = `<base href="${targetUrl}">\n`;
                 if (finalHtml.includes("<head>")) {
@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         styles += "}\n";
                     }
                     styles += "</style>\n";
-                    
+
                     if (finalHtml.includes("</head>")) {
                         finalHtml = finalHtml.replace("</head>", styles + "</head>");
                     } else if (finalHtml.includes("<head>")) {
@@ -298,14 +298,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.DOMPurify) {
                     sanitizedHtml = DOMPurify.sanitize(finalHtml, {
                         ALLOWED_TAGS: ['a', 'b', 'blockquote', 'br', 'button', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'html', 'i', 'img', 'input', 'label', 'li', 'link', 'meta', 'ol', 'p', 'section', 'span', 'strong', 'style', 'table', 'tbody', 'td', 'textarea', 'th', 'thead', 'title', 'tr', 'ul'],
-                        ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'title', 'type', 'value', 'placeholder', 'disabled', 'checked', 'required', 'for', 'name', 'colspan', 'rowspan', 'rel']
+                        ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'title', 'type', 'value', 'placeholder', 'disabled', 'checked', 'required', 'for', 'name', 'colspan', 'rowspan', 'rel'],
+                        WHOLE_DOCUMENT: true
                     });
                 }
 
                 // Use Blob URL instead of srcdoc to allow external resources
                 const blob = new Blob([sanitizedHtml], { type: 'text/html' });
                 const blobUrl = URL.createObjectURL(blob);
-                
+
                 if (aiPreviewFrame.dataset.blobUrl) {
                     URL.revokeObjectURL(aiPreviewFrame.dataset.blobUrl);
                 }
@@ -315,6 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const viewActualSiteBtn = document.getElementById('view-actual-site-btn');
                 if (viewActualSiteBtn) {
                     viewActualSiteBtn.onclick = () => window.open(targetUrl, '_blank');
+                }
+
+                const viewFixedUiBtn = document.getElementById('view-fixed-ui-btn');
+                if (viewFixedUiBtn) {
+                    viewFixedUiBtn.onclick = () => window.open(blobUrl, '_blank');
                 }
 
                 aiContainer.classList.remove('hidden');
@@ -509,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cpMsg.classList.remove('hidden');
                 setTimeout(() => cpMsg.classList.add('hidden'), 3000);
                 changePasswordForm.reset();
-            } catch(err) {
+            } catch (err) {
                 alert(err.message);
             }
         });
@@ -520,13 +526,13 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteAccountForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const delP = document.getElementById('del-password').value;
-            if(confirm("Are you absolutely sure? This cannot be undone.")) {
+            if (confirm("Are you absolutely sure? This cannot be undone.")) {
                 try {
                     const res = await api.deleteAccount(delP);
                     alert(res.message);
                     await api.logout();
                     updateAuthState();
-                } catch(err) {
+                } catch (err) {
                     alert(err.message);
                 }
             }
@@ -554,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const data = await api.uploadTemplate(title, url, parseFloat(price), file);
-            
+
             mpUploadResult.classList.remove('hidden');
             mpUploadResult.innerHTML = `
                 <div style="color: #10b981; margin-bottom: 0.5rem; font-weight: bold;">${data.message || 'Template uploaded'}</div>
@@ -582,7 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchTemplates(searchQuery = '') {
         try {
             const templates = await api.getTemplates(searchQuery);
-            
+
             mpGrid.innerHTML = '';
             if (templates.length === 0) {
                 mpGrid.innerHTML = '<p class="text-muted">No templates available yet.</p>';
@@ -632,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const users = await api.getAdminUsers();
             adminUsersList.innerHTML = '';
-            
+
             users.forEach(u => {
                 const tr = document.createElement('tr');
                 const roleClass = u.role === 'admin' ? 'role-admin' : 'role-user';
