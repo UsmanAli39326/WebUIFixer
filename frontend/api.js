@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'https://webuifixer.onrender.com';
+const API_BASE_URL = 'http://localhost:5000';
 
 class WebFixerAPI {
   constructor() {
@@ -86,7 +86,7 @@ class WebFixerAPI {
 
   // Website Analysis
   async analyzeWebsite(url, useAi = true) {
-    return this.request(`/audit?url=${encodeURIComponent(url)}&ai=${useAi}`);
+    return this.request(`/audit?url=${encodeURIComponent(url)}&ai=${useAi} `);
   }
 
   // Reports

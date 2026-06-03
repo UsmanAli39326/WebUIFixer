@@ -1,0 +1,823 @@
+﻿info: Using Memory store for rate limiting (no REDIS_URL provided) {"service":"webfixer-api"}
+info: POST /api/auth/register {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_CREATE_ACCOUNT_SUCCESS
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Positive Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify successful user account creation.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Valid user information (Valid User, valid@example.com)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | User account is created successfully and redirected to login/dashboard
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: POST /api/auth/register {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_CREATE_ACCOUNT_FAILURE
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Negative Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify invalid account creation handling.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Invalid input or duplicate email (dup@example.com)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Error message displayed and account not created
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_LOGIN_SUCCESS
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Positive Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify successful user authentication.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Valid login credentials (login@example.com)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | User successfully enters dashboard
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_LOGIN_FAILURE
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Negative Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify invalid login handling.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Invalid email or password (Wrong123)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Error message displayed and access denied
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: POST /api/marketplace/upload {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_WEBSITE_ANALYSIS_SUCCESS
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Positive Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify successful website analysis.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Valid website URL (https://example.com)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Analysis report generated successfully
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: POST /api/marketplace/upload {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_WEBSITE_ANALYSIS_FAILURE
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Negative Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify invalid website analysis handling.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Invalid or inaccessible URL (missing title trigger)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Error message displayed
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_ISSUE_DETECTION_SUCCESS
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Positive Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify successful issue detection and classification.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Website analysis data
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Issues displayed with severity levels
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: GET /api/audit/invalid-id/report/pdf {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_ISSUE_DETECTION_FAILURE
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Negative Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify failure handling during issue detection.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Incomplete analysis data / Invalid Audit ID
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Error message displayed
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: GET /api/recommendations/1780473280231 {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_RECOMMENDATION_SUCCESS
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Positive Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify successful recommendation generation.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Detected issue data (Audit ID)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | AI-generated recommendations displayed
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: GET /api/recommendations/999999999 {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_RECOMMENDATION_FAILURE
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Negative Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify recommendation generation failure handling.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Incomplete issue data (Invalid Audit ID)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Recommendations not generated and error displayed
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_WCAG_SUCCESS
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Positive Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify successful WCAG compliance checking.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Website analysis data (Completed Audit)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | WCAG score and compliance report displayed
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: GET /api/audit/999999999 {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_WCAG_FAILURE
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Negative Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify WCAG engine failure handling.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Website data (Unavailable Engine/Data)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Compliance report not generated and error displayed
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: GET /api/audit/1780473281597/report/pdf {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_REPORT_EXPORT_SUCCESS
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Positive Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify successful report generation and export.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Analysis results (Valid Audit ID)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Report generated and downloaded successfully
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+
+info: POST /api/auth/register {"service":"webfixer-api"}
+info: POST /api/auth/login {"service":"webfixer-api"}
+info: GET /api/audit/999999999/report/pdf {"service":"webfixer-api"}
+  console.log
+    
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:7:11)
+
+  console.log
+    | Field             | Details
+
+      at log (tests/chapter5_suite.test.js:8:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:9:11)
+
+  console.log
+    | ID                | TC_REPORT_EXPORT_FAILURE
+
+      at log (tests/chapter5_suite.test.js:10:11)
+
+  console.log
+    | Type              | Negative Test Case
+
+      at log (tests/chapter5_suite.test.js:11:11)
+
+  console.log
+    | Priority          | High
+
+      at log (tests/chapter5_suite.test.js:12:11)
+
+  console.log
+    | Description       | To verify report generation failure handling.
+
+      at log (tests/chapter5_suite.test.js:13:11)
+
+  console.log
+    | Input             | Missing analysis data (Invalid Audit ID)
+
+      at log (tests/chapter5_suite.test.js:14:11)
+
+  console.log
+    | Expected Result   | Report generation fails and error displayed
+
+      at log (tests/chapter5_suite.test.js:15:11)
+
+  console.log
+    | Status            | Tested, Passed
+
+      at log (tests/chapter5_suite.test.js:16:11)
+
+  console.log
+    -------------------------------------------------------------
+
+      at log (tests/chapter5_suite.test.js:17:11)
+

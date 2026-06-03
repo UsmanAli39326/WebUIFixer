@@ -33,21 +33,21 @@ app.use((req, res, next) => {
 });
 
 // CORS
-const allowedOrigins = ["http://localhost:3000", "http://localhost:5173", "https://webfixer-frontend.com"];
+const allowedOrigins = ["http://localhost:3000", "http://localhost:5173", "https://webfixer-frontend.com", "https://kreate-ui.vercel.app"];
 
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
+  const origin = req.headers.origin; ``
   if (allowedOrigins.includes(origin)) {
     res.header("Access-Control-Allow-Origin", origin);
   }
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  
+
   // Handle preflight requests
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
-  
+
   next();
 });
 
@@ -77,18 +77,18 @@ async function isSafeUrl(str) {
   try {
     const url = new URL(str);
     if (!["http:", "https:"].includes(url.protocol)) return false;
-    
+
     const hostname = url.hostname;
-    
+
     // Quick block for exact string matches
     if (hostname === "localhost" || hostname === "[::1]" || hostname === "::1") {
       return false;
     }
-    
+
     try {
       const lookup = await dns.lookup(hostname);
       const ip = lookup.address;
-      
+
       // Blocklist for SSRF prevention on resolved IP
       if (
         ip === "127.0.0.1" ||
@@ -106,7 +106,7 @@ async function isSafeUrl(str) {
       // If DNS resolution fails, we shouldn't audit it anyway
       return false;
     }
-    
+
     return true;
   } catch {
     return false;
@@ -142,10 +142,10 @@ app.get("/audit", verifyToken, auditLimiter, urlValidator, async (req, res) => {
 
   try {
     const startTime = Date.now();
-    
+
     // 2. Delegate analysis and AI fixing to FastAPI
     const result = await analyzeWebsite(url, useAi);
-    
+
     const duration = Date.now() - startTime;
     logger.info(`[Audit] AI Engine completed in ${duration}ms`);
 
@@ -167,7 +167,7 @@ app.get("/audit", verifyToken, auditLimiter, urlValidator, async (req, res) => {
 
   } catch (err) {
     logger.error(`[Audit] Failed: ${err.message}`);
-    
+
     // Classify errors
     if (err.message.includes("Timeout")) {
       return res.status(504).json({ error: `Timeout: ${err.message}` });
@@ -194,7 +194,7 @@ app.get("/api/audit/:id/report/pdf", verifyToken, async (req, res) => {
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename=audit-report-${req.params.id}.pdf`);
-    
+
     await ReportService.generatePDF(audit, res);
     log(undefined, 'report_downloaded', { auditId: req.params.id });
   } catch (err) {
